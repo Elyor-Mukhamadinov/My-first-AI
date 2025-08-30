@@ -12,13 +12,30 @@ const callApi = async (
         body: formData,
     });
 
-    const result = await response.json();
-
     if (!response.ok) {
-        throw new Error(result.error || 'Serverda noma\'lum xatolik yuz berdi.');
+        let errorMsg = 'Serverda noma\'lum xatolik yuz berdi.';
+        try {
+            // Try to parse a structured error message from our server function
+            const errorResult = await response.json();
+            errorMsg = errorResult.error || errorMsg;
+        } catch (e) {
+            // If the body isn't JSON (e.g., a gateway error), use the status text.
+            errorMsg = `Server xatosi: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMsg);
     }
 
-    return result.imageUrl;
+    // If response.ok is true, we expect valid JSON. Let's still be safe.
+    try {
+        const result = await response.json();
+        if (!result.imageUrl) {
+            throw new Error("Serverdan rasm manzili kelmadi.");
+        }
+        return result.imageUrl;
+    } catch (e) {
+        console.error("Javobni JSON formatida o'qishda xatolik:", e);
+        throw new Error("Serverdan yaroqli javob kelmadi, garchi so'rov muvaffaqiyatli ko'rinsa ham.");
+    }
 };
 
 /**

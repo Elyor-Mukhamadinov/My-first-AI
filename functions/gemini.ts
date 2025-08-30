@@ -9,10 +9,18 @@
 
 import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
 
-// Helper function to convert a Buffer to a Gemini API Part
-const bufferToPart = (buffer: Buffer, mimeType: string) => {
-    return { inlineData: { mimeType, data: buffer.toString('base64') } };
+// Helper function to convert an ArrayBuffer to a Base64 string using web-standard APIs.
+// This avoids Node.js-specific 'Buffer', which can cause issues in some serverless environments.
+const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
 };
+
 
 const handleApiResponse = (
     response: GenerateContentResponse,
@@ -56,7 +64,7 @@ export default async (request: Request) => {
     try {
         const apiKey = process.env.API_KEY;
         if (!apiKey) {
-            throw new Error("API_KEY environment variable not set in Netlify.");
+            throw new Error("API_KEY muhit o'zgaruvchisi Netlify sozlamalarida o'rnatilmagan.");
         }
         
         const ai = new GoogleGenAI({ apiKey });
@@ -67,18 +75,36 @@ export default async (request: Request) => {
         const prompt = formData.get('prompt') as string | null;
         
         if (!imageFile || !action || !prompt) {
-             return new Response(JSON.stringify({ error: 'Missing required form data.' }), { status: 400 });
+             return new Response(JSON.stringify({ error: 'Kerakli form ma\'lumotlari yetishmayapti.' }), { 
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
         }
 
-        const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
-        const originalImagePart = bufferToPart(imageBuffer, imageFile.type);
+        const imageArrayBuffer = await imageFile.arrayBuffer();
+        const imageBase64 = arrayBufferToBase64(imageArrayBuffer);
+        const originalImagePart = {
+            inlineData: {
+                mimeType: imageFile.type,
+                data: imageBase64
+            }
+        };
         
         let modelPrompt: string;
         let response: GenerateContentResponse;
         
         switch (action) {
             case 'edit':
-                const hotspot = JSON.parse(formData.get('hotspot') as string);
+                const hotspotRaw = formData.get('hotspot') as string | null;
+                if (!hotspotRaw) {
+                    return new Response(JSON.stringify({ error: "'hotspot' ma'lumoti yetishmayapti." }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                }
+                let hotspot;
+                try {
+                    hotspot = JSON.parse(hotspotRaw);
+                } catch (e) {
+                    return new Response(JSON.stringify({ error: "'hotspot' ma'lumoti noto'g'ri JSON formatida." }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                }
                 modelPrompt = `You are an expert photo editor AI. Your task is to perform a natural, localized edit on the provided image based on the user's request.
 User Request: "${prompt}"
 Edit Location: Focus on the area around pixel coordinates (x: ${hotspot.x}, y: ${hotspot.y}).
@@ -110,7 +136,7 @@ Safety & Ethics Policy:
 Output: Return ONLY the final adjusted image. Do not return text.`;
                 break;
             default:
-                throw new Error('Invalid action provided.');
+                throw new Error("Noto'g'ri 'action' qiymati taqdim etildi.");
         }
 
         const textPart = { text: modelPrompt };
@@ -130,7 +156,7 @@ Output: Return ONLY the final adjusted image. Do not return text.`;
 
     } catch (err) {
         const error = err as Error;
-        console.error(error);
+        console.error("Server funksiyasida xatolik:", error);
         return new Response(JSON.stringify({ error: error.message }), { 
             status: 500,
             headers: { 'Content-Type': 'application/json' },

@@ -18,18 +18,27 @@ import StartScreen from './components/StartScreen';
 // Helper to convert a data URL string to a File object
 const dataURLtoFile = (dataurl: string, filename: string): File => {
     const arr = dataurl.split(',');
-    if (arr.length < 2) throw new Error("Invalid data URL");
-    const mimeMatch = arr[0].match(/:(.*?);/);
-    if (!mimeMatch || !mimeMatch[1]) throw new Error("Could not parse MIME type from data URL");
-
-    const mime = mimeMatch[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while(n--){
-        u8arr[n] = bstr.charCodeAt(n);
+    if (arr.length < 2 || !arr[0] || !arr[1]) {
+        throw new Error("Ma'lumotlar URL manzili yaroqsiz.");
     }
-    return new File([u8arr], filename, {type:mime});
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    if (!mimeMatch || !mimeMatch[1]) {
+        throw new Error("Ma'lumotlar URL manzilidan MIME turini aniqlab bo'lmadi.");
+    }
+    const mime = mimeMatch[1];
+
+    try {
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, {type:mime});
+    } catch (e) {
+        console.error("Base64 dekodlashda xato:", e);
+        throw new Error("Rasmni qayta ishlashda xato yuz berdi.");
+    }
 }
 
 type Tab = 'retouch' | 'adjust' | 'filters' | 'crop';
@@ -103,83 +112,66 @@ const App: React.FC = () => {
     setCompletedCrop(undefined);
   }, []);
 
-  const handleGenerate = useCallback(async () => {
+  const handleAsyncAction = async (action: () => Promise<string>, context: string) => {
     if (!currentImage) {
-      setError('Tahrirlash uchun rasm yuklanmagan.');
+      setError(`${context} uchun rasm yuklanmagan.`);
       return;
     }
     
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+        const newImageUrl = await action();
+        const newImageFile = dataURLtoFile(newImageUrl, `edited-${Date.now()}.png`);
+        addImageToHistory(newImageFile);
+        if (context === 'Tahrirlash') {
+            setEditHotspot(null);
+            setDisplayHotspot(null);
+        }
+    } catch (err) {
+        console.error(`${context} operatsiyasi amalga oshmadi:`, err);
+        let errorMessage = 'Noma\'lum xatolik yuz berdi.';
+        if (err instanceof Error) {
+            errorMessage = err.message;
+        } else if (typeof err === 'string') {
+            errorMessage = err;
+        }
+        setError(`Rasmni qayta ishlab bo‘lmadi. ${errorMessage}`);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const handleGenerate = useCallback(async () => {
     if (!prompt.trim()) {
         setError('Iltimos, tahriringiz uchun tavsif kiriting.');
         return;
     }
-
     if (!editHotspot) {
         setError('Tahrirlash uchun rasmdagi maydonni tanlash uchun bosing.');
         return;
     }
-
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-        const editedImageUrl = await generateEditedImage(currentImage, prompt, editHotspot);
-        const newImageFile = dataURLtoFile(editedImageUrl, `edited-${Date.now()}.png`);
-        addImageToHistory(newImageFile);
-        setEditHotspot(null);
-        setDisplayHotspot(null);
-    } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Noma\'lum xatolik yuz berdi.';
-        setError(`Rasmni yaratib bo‘lmadi. ${errorMessage}`);
-        console.error(err);
-    } finally {
-        setIsLoading(false);
-    }
+    await handleAsyncAction(
+      () => generateEditedImage(currentImage!, prompt, editHotspot),
+      'Tahrirlash'
+    );
   }, [currentImage, prompt, editHotspot, addImageToHistory]);
   
   const handleApplyFilter = useCallback(async (filterPrompt: string) => {
-    if (!currentImage) {
-      setError('Filtr qo‘llash uchun rasm yuklanmagan.');
-      return;
-    }
-    
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-        const filteredImageUrl = await generateFilteredImage(currentImage, filterPrompt);
-        const newImageFile = dataURLtoFile(filteredImageUrl, `filtered-${Date.now()}.png`);
-        addImageToHistory(newImageFile);
-    } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Noma\'lum xatolik yuz berdi.';
-        setError(`Filtrni qo‘llab bo‘lmadi. ${errorMessage}`);
-        console.error(err);
-    } finally {
-        setIsLoading(false);
-    }
+    await handleAsyncAction(
+      () => generateFilteredImage(currentImage!, filterPrompt),
+      'Filtr qo‘llash'
+    );
   }, [currentImage, addImageToHistory]);
   
   const handleApplyAdjustment = useCallback(async (adjustmentPrompt: string) => {
-    if (!currentImage) {
-      setError('O‘zgartirish kiritish uchun rasm yuklanmagan.');
-      return;
-    }
-    
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-        const adjustedImageUrl = await generateAdjustedImage(currentImage, adjustmentPrompt);
-        const newImageFile = dataURLtoFile(adjustedImageUrl, `adjusted-${Date.now()}.png`);
-        addImageToHistory(newImageFile);
-    } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Noma\'lum xatolik yuz berdi.';
-        setError(`O‘zgartirishni qo‘llab bo‘lmadi. ${errorMessage}`);
-        console.error(err);
-    } finally {
-        setIsLoading(false);
-    }
+    await handleAsyncAction(
+      () => generateAdjustedImage(currentImage!, adjustmentPrompt),
+      'O‘zgartirish kiritish'
+    );
   }, [currentImage, addImageToHistory]);
+
 
   const handleApplyCrop = useCallback(() => {
     if (!completedCrop || !imgRef.current) {
@@ -388,10 +380,14 @@ const App: React.FC = () => {
             )}
         </div>
         
-        <div className="w-full bg-[#F4EAD5]/80 border-2 border-stone-500 rounded-lg p-2 flex items-center justify-center gap-2 backdrop-blur-sm shadow-[8px_8px_0px_rgba(61,43,31,0.2)]">
+        <div role="tablist" aria-label="Tahrirlash asboblari" className="w-full bg-[#F4EAD5]/80 border-2 border-stone-500 rounded-lg p-2 flex items-center justify-center gap-2 backdrop-blur-sm shadow-[8px_8px_0px_rgba(61,43,31,0.2)]">
             {(['retouch', 'crop', 'adjust', 'filters'] as Tab[]).map(tab => (
                  <button
                     key={tab}
+                    id={`tab-${tab}`}
+                    role="tab"
+                    aria-selected={activeTab === tab}
+                    aria-controls={`tabpanel-${tab}`}
                     onClick={() => setActiveTab(tab)}
                     className={`w-full capitalize font-semibold py-3 px-5 rounded-md transition-all duration-200 text-base border-2 ${
                         activeTab === tab 
@@ -406,7 +402,7 @@ const App: React.FC = () => {
         
         <div className="w-full">
             {activeTab === 'retouch' && (
-                <div className="flex flex-col items-center gap-4">
+                <div id="tabpanel-retouch" role="tabpanel" aria-labelledby="tab-retouch" className="flex flex-col items-center gap-4">
                     <p className="text-md text-stone-600">
                         {editHotspot ? 'Ajoyib! Endi quyida mahalliy tahriringizni tasvirlab bering.' : 'Aniq tahrir qilish uchun rasmdagi maydonni bosing.'}
                     </p>
@@ -429,9 +425,21 @@ const App: React.FC = () => {
                     </form>
                 </div>
             )}
-            {activeTab === 'crop' && <CropPanel onApplyCrop={handleApplyCrop} onSetAspect={setAspect} isLoading={isLoading} isCropping={!!completedCrop?.width && completedCrop.width > 0} />}
-            {activeTab === 'adjust' && <AdjustmentPanel onApplyAdjustment={handleApplyAdjustment} isLoading={isLoading} />}
-            {activeTab === 'filters' && <FilterPanel onApplyFilter={handleApplyFilter} isLoading={isLoading} />}
+            {activeTab === 'crop' && (
+              <div id="tabpanel-crop" role="tabpanel" aria-labelledby="tab-crop">
+                <CropPanel onApplyCrop={handleApplyCrop} onSetAspect={setAspect} isLoading={isLoading} isCropping={!!completedCrop?.width && completedCrop.width > 0} />
+              </div>
+            )}
+            {activeTab === 'adjust' && (
+              <div id="tabpanel-adjust" role="tabpanel" aria-labelledby="tab-adjust">
+                <AdjustmentPanel onApplyAdjustment={handleApplyAdjustment} isLoading={isLoading} />
+              </div>
+            )}
+            {activeTab === 'filters' && (
+              <div id="tabpanel-filters" role="tabpanel" aria-labelledby="tab-filters">
+                <FilterPanel onApplyFilter={handleApplyFilter} isLoading={isLoading} />
+              </div>
+            )}
         </div>
         
         <div className="flex flex-wrap items-center justify-center gap-3 mt-6">

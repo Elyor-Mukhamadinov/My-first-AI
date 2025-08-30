@@ -12,7 +12,6 @@ interface CropPanelProps {
   isCropping: boolean;
 }
 
-type AspectRatio = 'erkin' | '1:1' | '16:9';
 type AspectRatioInternal = 'free' | '1:1' | '16:9';
 
 const CropPanel: React.FC<CropPanelProps> = ({ onApplyCrop, onSetAspect, isLoading, isCropping }) => {
@@ -23,7 +22,7 @@ const CropPanel: React.FC<CropPanelProps> = ({ onApplyCrop, onSetAspect, isLoadi
     onSetAspect(value);
   }
 
-  const aspects: { name: AspectRatioInternal, displayName: AspectRatio, value: number | undefined }[] = [
+  const aspects: { name: AspectRatioInternal, displayName: string, value: number | undefined }[] = [
     { name: 'free', displayName: 'erkin', value: undefined },
     { name: '1:1', displayName: '1:1', value: 1 / 1 },
     { name: '16:9', displayName: '16:9', value: 16 / 9 },
