@@ -43,6 +43,14 @@ const dataURLtoFile = (dataurl: string, filename: string): File => {
 
 type Tab = 'retouch' | 'adjust' | 'filters' | 'crop';
 
+const loadingMessages = [
+    'AI sehrgarlik qilmoqda...',
+    'Piksellarni tartibga solmoqda...',
+    'Ijodiy uchqunlarni yoqmoqda...',
+    'Ranglar palitrasini sozlamoqda...',
+    'Biroz kuting, ajoyib natija yaqin...',
+];
+
 const App: React.FC = () => {
   const [history, setHistory] = useState<File[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
@@ -59,11 +67,31 @@ const App: React.FC = () => {
   const [isComparing, setIsComparing] = useState<boolean>(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
+  const [loadingMessage, setLoadingMessage] = useState(loadingMessages[0]);
+
   const currentImage = history[historyIndex] ?? null;
   const originalImage = history[0] ?? null;
 
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
+
+  // Effect to manage loading messages
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (isLoading) {
+      interval = setInterval(() => {
+        setLoadingMessage(prev => {
+          const currentIndex = loadingMessages.indexOf(prev);
+          const nextIndex = (currentIndex + 1) % loadingMessages.length;
+          return loadingMessages[nextIndex];
+        });
+      }, 2500);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isLoading]);
+
 
   // Effect to create and revoke object URLs safely for the current image
   useEffect(() => {
@@ -103,6 +131,21 @@ const App: React.FC = () => {
 
   const handleImageUpload = useCallback((file: File) => {
     setError(null);
+
+    // Validate file type
+    const acceptedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!acceptedTypes.includes(file.type)) {
+        setError("Faqat rasm fayllarini yuklang (JPEG, PNG, WEBP).");
+        return;
+    }
+
+    // Validate file size (e.g., 10MB limit)
+    const maxSizeInBytes = 10 * 1024 * 1024;
+    if (file.size > maxSizeInBytes) {
+        setError("Rasm hajmi 10 MB dan katta bo'lmasligi kerak.");
+        return;
+    }
+
     setHistory([file]);
     setHistoryIndex(0);
     setEditHotspot(null);
@@ -120,6 +163,7 @@ const App: React.FC = () => {
     
     setIsLoading(true);
     setError(null);
+    setLoadingMessage(loadingMessages[0]);
     
     try {
         const newImageUrl = await action();
@@ -297,10 +341,13 @@ const App: React.FC = () => {
             <h2 className="text-3xl font-display text-red-900">Xatolik yuz berdi</h2>
             <p className="text-md text-red-800">{error}</p>
             <button
-                onClick={() => setError(null)}
+                onClick={() => {
+                    setError(null);
+                    if(!currentImage) handleUploadNew();
+                }}
                 className="bg-[#B22222] text-white hover:bg-[#9d1d1d] font-bold py-3 px-6 rounded-lg text-md transition-colors border-2 border-[#3D2B1F] shadow-[4px_4px_0px_#3D2B1F] active:translate-x-1 active:translate-y-1 active:shadow-none"
               >
-                Qayta urinish
+                {currentImage ? 'Qayta urinish' : 'Boshidan boshlash'}
             </button>
           </div>
         );
@@ -354,7 +401,7 @@ const App: React.FC = () => {
             {isLoading && (
                 <div className="absolute inset-0 bg-[#FDF6E3]/90 z-30 flex flex-col items-center justify-center gap-4 animate-fade-in">
                     <Spinner />
-                    <p className="text-stone-700 text-lg font-medium">AI sehrgarlik qilmoqda...</p>
+                    <p className="text-stone-700 text-lg font-medium">{loadingMessage}</p>
                 </div>
             )}
             

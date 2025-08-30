@@ -3,19 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-// Fix for "Cannot find name 'Deno'" error in TypeScript environments that
-// don't have Deno types globally available. This declares the Deno global.
-declare const Deno: {
-  env: {
-    get(key: string): string | undefined;
-  };
-};
-
 // Bu Deno muhitida ishlaydigan Netlify Funksiyasi.
 // U bizning front-end va Google Gemini API o'rtasida xavfsiz proksi vazifasini bajaradi.
 // Bu API kalitlari bilan ishlashning ENG YAXSHI USULI hisoblanadi.
 
-import { GoogleGenAI, type GenerateContentResponse, Modality } from "https://esm.sh/@google/genai@^1.10.0";
+import { GoogleGenAI, type GenerateContentResponse, Modality } from "@google/genai";
 
 // ArrayBuffer'ni Base64 satriga o'giruvchi yordamchi funksiya (veb-standart API'lar yordamida).
 // Bu ba'zi serverless muhitlarda muammo tug'dirishi mumkin bo'lgan Node.js'ga xos 'Buffer'dan qochadi.
@@ -63,15 +55,15 @@ const handleApiResponse = (
 };
 
 
-// Netlify'ning Deno uchun zamonaviy handler imzosi (global Request va Response'dan foydalanadi)
+// Netlify'ning Deno uchun zamonaviy handler imzosi
 export default async (request: Request) => {
     if (request.method !== 'POST') {
         return new Response('Method Not Allowed', { status: 405 });
     }
 
     try {
-        // Deno'da muhit o'zgaruvchilarini olishning to'g'ri usuli
-        const apiKey = Deno.env.get("API_KEY");
+        // Fix: Use process.env.API_KEY to align with Node.js environment and coding guidelines.
+        const apiKey = process.env.API_KEY;
         if (!apiKey) {
             throw new Error("API_KEY muhit o'zgaruvchisi Netlify sozlamalarida o'rnatilmagan.");
         }
@@ -86,6 +78,15 @@ export default async (request: Request) => {
         if (!imageFile || !action || !prompt) {
              return new Response(JSON.stringify({ error: 'Kerakli form ma\'lumotlari yetishmayapti.' }), { 
                 status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+        
+        // Fayl hajmini tekshirish (10MB)
+        const maxSizeInBytes = 10 * 1024 * 1024;
+        if (imageFile.size > maxSizeInBytes) {
+            return new Response(JSON.stringify({ error: "Rasm hajmi 10 MB dan katta bo'lmasligi kerak." }), {
+                status: 413, // Payload Too Large
                 headers: { 'Content-Type': 'application/json' }
             });
         }

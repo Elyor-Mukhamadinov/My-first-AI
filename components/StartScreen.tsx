@@ -41,7 +41,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect }) => {
                 <UploadIcon className="w-6 h-6 mr-3 transition-transform duration-300 ease-in-out group-hover:scale-110" />
                 Rasm Yuklash
             </label>
-            <input id="image-upload-start" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+            <input id="image-upload-start" type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} />
             <p className="text-sm text-stone-500">yoki faylni sudrab olib keling</p>
         </div>
 
