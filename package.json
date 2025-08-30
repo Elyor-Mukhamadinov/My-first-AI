@@ -2,6 +2,9 @@
   "name": "suratkash-photo-editor",
   "version": "1.0.0",
   "description": "AI Photo Editor with Netlify Functions",
+  "scripts": {
+    "build": "echo 'Build step not required for this project.'"
+  },
   "dependencies": {
     "@google/genai": "^1.10.0"
   }
