@@ -3,14 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-// This is a Netlify Function that runs on the server.
-// It acts as a secure proxy between our frontend and the Google Gemini API.
-// This is the BEST PRACTICE for handling API keys.
+// Fix for "Cannot find name 'Deno'" error in TypeScript environments that
+// don't have Deno types globally available. This declares the Deno global.
+declare const Deno: {
+  env: {
+    get(key: string): string | undefined;
+  };
+};
 
-import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
+// Bu Deno muhitida ishlaydigan Netlify Funksiyasi.
+// U bizning front-end va Google Gemini API o'rtasida xavfsiz proksi vazifasini bajaradi.
+// Bu API kalitlari bilan ishlashning ENG YAXSHI USULI hisoblanadi.
 
-// Helper function to convert an ArrayBuffer to a Base64 string using web-standard APIs.
-// This avoids Node.js-specific 'Buffer', which can cause issues in some serverless environments.
+import { GoogleGenAI, type GenerateContentResponse, Modality } from "https://esm.sh/@google/genai@^1.10.0";
+
+// ArrayBuffer'ni Base64 satriga o'giruvchi yordamchi funksiya (veb-standart API'lar yordamida).
+// Bu ba'zi serverless muhitlarda muammo tug'dirishi mumkin bo'lgan Node.js'ga xos 'Buffer'dan qochadi.
 const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
     let binary = '';
     const bytes = new Uint8Array(buffer);
@@ -55,14 +63,15 @@ const handleApiResponse = (
 };
 
 
-// Netlify's modern handler signature using global Request and Response
+// Netlify'ning Deno uchun zamonaviy handler imzosi (global Request va Response'dan foydalanadi)
 export default async (request: Request) => {
     if (request.method !== 'POST') {
         return new Response('Method Not Allowed', { status: 405 });
     }
 
     try {
-        const apiKey = process.env.API_KEY;
+        // Deno'da muhit o'zgaruvchilarini olishning to'g'ri usuli
+        const apiKey = Deno.env.get("API_KEY");
         if (!apiKey) {
             throw new Error("API_KEY muhit o'zgaruvchisi Netlify sozlamalarida o'rnatilmagan.");
         }
