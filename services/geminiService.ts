@@ -3,29 +3,46 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-const callApi = async (
-    formData: FormData
-): Promise<string> => {
-    // We call our own serverless function, which will securely call the Gemini API.
+// Helper to convert a File object to a Data URL string.
+const fileToDataURL = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+};
+
+
+const callApi = async (payload: object): Promise<string> => {
     const response = await fetch('/.netlify/functions/gemini', {
         method: 'POST',
-        body: formData,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-        let errorMsg = 'Serverda noma\'lum xatolik yuz berdi.';
-        try {
-            // Try to parse a structured error message from our server function
-            const errorResult = await response.json();
-            errorMsg = errorResult.error || errorMsg;
-        } catch (e) {
-            // If the body isn't JSON (e.g., a gateway error), use the status text.
-            errorMsg = `Server xatosi: ${response.status} ${response.statusText}`;
+        let errorMsg = `Server xatosi: ${response.status} ${response.statusText}.`;
+        
+        if (response.status === 404) {
+            errorMsg = "Server funksiyasi topilmadi (404). Loyiha tuzilishi to'g'ri ekanligiga ishonch hosil qiling.";
+        } else if (response.status === 429) {
+             errorMsg = "Server haddan tashqari yuklangan. Iltimos, bir daqiqadan so'ng qayta urinib ko'ring.";
+        } else {
+            try {
+                // Try to parse a specific JSON error from our function
+                const errorResult = await response.json();
+                errorMsg = errorResult.error || errorMsg;
+            } catch (e) {
+                // If parsing fails, it's likely not our function's response (e.g., Netlify error page)
+                errorMsg += " Serverdan yaroqli JSON javob kelmadi. Funksiya to'g'ri joylashtirilganligini tekshiring.";
+            }
         }
         throw new Error(errorMsg);
     }
 
-    // If response.ok is true, we expect valid JSON. Let's still be safe.
     try {
         const result = await response.json();
         if (!result.imageUrl) {
@@ -34,7 +51,7 @@ const callApi = async (
         return result.imageUrl;
     } catch (e) {
         console.error("Javobni JSON formatida o'qishda xatolik:", e);
-        throw new Error("Serverdan yaroqli javob kelmadi, garchi so'rov muvaffaqiyatli ko'rinsa ham.");
+        throw new Error("Serverdan yaroqli javob kelmadi.");
     }
 };
 
@@ -50,12 +67,14 @@ export const generateEditedImage = async (
     userPrompt: string,
     hotspot: { x: number, y: number }
 ): Promise<string> => {
-    const formData = new FormData();
-    formData.append('action', 'edit');
-    formData.append('image', originalImage);
-    formData.append('prompt', userPrompt);
-    formData.append('hotspot', JSON.stringify(hotspot));
-    return callApi(formData);
+    const imageDataUrl = await fileToDataURL(originalImage);
+    const payload = {
+        action: 'edit',
+        imageDataUrl,
+        prompt: userPrompt,
+        hotspot,
+    };
+    return callApi(payload);
 };
 
 /**
@@ -68,11 +87,13 @@ export const generateFilteredImage = async (
     originalImage: File,
     filterPrompt: string,
 ): Promise<string> => {
-    const formData = new FormData();
-    formData.append('action', 'filter');
-    formData.append('image', originalImage);
-    formData.append('prompt', filterPrompt);
-    return callApi(formData);
+    const imageDataUrl = await fileToDataURL(originalImage);
+    const payload = {
+        action: 'filter',
+        imageDataUrl,
+        prompt: filterPrompt,
+    };
+    return callApi(payload);
 };
 
 /**
@@ -85,9 +106,11 @@ export const generateAdjustedImage = async (
     originalImage: File,
     adjustmentPrompt: string,
 ): Promise<string> => {
-    const formData = new FormData();
-    formData.append('action', 'adjust');
-    formData.append('image', originalImage);
-    formData.append('prompt', adjustmentPrompt);
-    return callApi(formData);
+    const imageDataUrl = await fileToDataURL(originalImage);
+    const payload = {
+        action: 'adjust',
+        imageDataUrl,
+        prompt: adjustmentPrompt,
+    };
+    return callApi(payload);
 };
