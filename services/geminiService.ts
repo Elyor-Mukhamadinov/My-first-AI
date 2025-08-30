@@ -31,7 +31,7 @@ const handleApiResponse = (
     // 1. Check for prompt blocking first
     if (response.promptFeedback?.blockReason) {
         const { blockReason, blockReasonMessage } = response.promptFeedback;
-        const errorMessage = `Request was blocked. Reason: ${blockReason}. ${blockReasonMessage || ''}`;
+        const errorMessage = `So'rov bloklandi. Sabab: ${blockReason}. ${blockReasonMessage || ''}`;
         console.error(errorMessage, { response });
         throw new Error(errorMessage);
     }
@@ -48,16 +48,16 @@ const handleApiResponse = (
     // 3. If no image, check for other reasons
     const finishReason = response.candidates?.[0]?.finishReason;
     if (finishReason && finishReason !== 'STOP') {
-        const errorMessage = `Image generation for ${context} stopped unexpectedly. Reason: ${finishReason}. This often relates to safety settings.`;
+        const errorMessage = `Rasm yaratish ${context} uchun kutilmaganda to‘xtadi. Sabab: ${finishReason}. Bu ko‘pincha xavfsizlik sozlamalari bilan bog‘liq.`;
         console.error(errorMessage, { response });
         throw new Error(errorMessage);
     }
     
     const textFeedback = response.text?.trim();
-    const errorMessage = `The AI model did not return an image for the ${context}. ` + 
+    const errorMessage = `AI modeli ${context} uchun rasm qaytarmadi. ` + 
         (textFeedback 
-            ? `The model responded with text: "${textFeedback}"`
-            : "This can happen due to safety filters or if the request is too complex. Please try rephrasing your prompt to be more direct.");
+            ? `Model matn bilan javob berdi: "${textFeedback}"`
+            : "Bu xavfsizlik filtrlari tufayli yoki so'rov juda murakkab bo'lsa sodir bo'lishi mumkin. Iltimos, so'rovingizni aniqroq qilib qayta ifodalashga harakat qiling.");
 
     console.error(`Model response did not contain an image part for ${context}.`, { response });
     throw new Error(errorMessage);

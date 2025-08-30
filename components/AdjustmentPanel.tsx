@@ -15,10 +15,10 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({ onApplyAdjustment, is
   const [customPrompt, setCustomPrompt] = useState('');
 
   const presets = [
-    { name: 'Blur Background', prompt: 'Apply a realistic depth-of-field effect, making the background blurry while keeping the main subject in sharp focus.' },
-    { name: 'Enhance Details', prompt: 'Slightly enhance the sharpness and details of the image without making it look unnatural.' },
-    { name: 'Warmer Lighting', prompt: 'Adjust the color temperature to give the image warmer, golden-hour style lighting.' },
-    { name: 'Studio Light', prompt: 'Add dramatic, professional studio lighting to the main subject.' },
+    { name: 'Orqa fonni xiralashtirish', prompt: 'Haqiqiy maydon chuqurligi effektini qo‘llang, asosiy ob’ektni aniq fokusda ushlab turgan holda orqa fonni xiralashtiring.' },
+    { name: 'Detallarni yaxshilash', prompt: 'Rasmni g‘ayritabiiy ko‘rinishga keltirmasdan uning aniqligi va detallarini biroz yaxshilang.' },
+    { name: 'Iliqroq yoritish', prompt: 'Rasmga iliqroq, oltin soat uslubidagi yoritishni berish uchun rang haroratini sozlang.' },
+    { name: 'Studiya yorug‘ligi', prompt: 'Asosiy ob’ektga dramatik, professional studiya yoritilishini qo‘shing.' },
   ];
 
   const activePrompt = selectedPresetPrompt || customPrompt;
@@ -41,7 +41,7 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({ onApplyAdjustment, is
 
   return (
     <div className="w-full bg-[#F4EAD5]/80 border-2 border-stone-500 rounded-lg p-4 backdrop-blur-sm shadow-[8px_8px_0px_rgba(61,43,31,0.2)] flex flex-col gap-4 animate-fade-in">
-      <h3 className="text-xl font-display text-center text-stone-800">Apply a Professional Adjustment</h3>
+      <h3 className="text-xl font-display text-center text-stone-800">Professional Sozlashni Qo‘llash</h3>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {presets.map(preset => (
@@ -60,7 +60,7 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({ onApplyAdjustment, is
         type="text"
         value={customPrompt}
         onChange={handleCustomChange}
-        placeholder="Or describe an adjustment (e.g., 'change background to a forest')"
+        placeholder="Yoki sozlashni tasvirlang (masalan, 'orqa fonni o‘rmonga o‘zgartirish')"
         className="flex-grow bg-white border-2 border-stone-800 text-stone-900 rounded-lg p-4 focus:ring-2 focus:ring-[#40826D] focus:outline-none transition w-full disabled:cursor-not-allowed disabled:bg-stone-200 text-base"
         disabled={isLoading}
       />
@@ -72,7 +72,7 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({ onApplyAdjustment, is
                 className="w-full bg-[#40826D] text-white font-bold py-4 px-6 rounded-lg transition-all duration-150 ease-in-out border-2 border-[#3D2B1F] shadow-[4px_4px_0px_#3D2B1F] hover:bg-[#356a58] active:translate-x-1 active:translate-y-1 active:shadow-none text-base disabled:bg-stone-400 disabled:shadow-none disabled:text-stone-600 disabled:cursor-not-allowed disabled:transform-none"
                 disabled={isLoading || !activePrompt.trim()}
             >
-                Apply Adjustment
+                Sozlashni Qo‘llash
             </button>
         </div>
       )}

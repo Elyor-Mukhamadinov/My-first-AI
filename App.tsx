@@ -105,17 +105,17 @@ const App: React.FC = () => {
 
   const handleGenerate = useCallback(async () => {
     if (!currentImage) {
-      setError('No image loaded to edit.');
+      setError('Tahrirlash uchun rasm yuklanmagan.');
       return;
     }
     
     if (!prompt.trim()) {
-        setError('Please enter a description for your edit.');
+        setError('Iltimos, tahriringiz uchun tavsif kiriting.');
         return;
     }
 
     if (!editHotspot) {
-        setError('Please click on the image to select an area to edit.');
+        setError('Tahrirlash uchun rasmdagi maydonni tanlash uchun bosing.');
         return;
     }
 
@@ -129,8 +129,8 @@ const App: React.FC = () => {
         setEditHotspot(null);
         setDisplayHotspot(null);
     } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-        setError(`Failed to generate the image. ${errorMessage}`);
+        const errorMessage = err instanceof Error ? err.message : 'Noma\'lum xatolik yuz berdi.';
+        setError(`Rasmni yaratib bo‘lmadi. ${errorMessage}`);
         console.error(err);
     } finally {
         setIsLoading(false);
@@ -139,7 +139,7 @@ const App: React.FC = () => {
   
   const handleApplyFilter = useCallback(async (filterPrompt: string) => {
     if (!currentImage) {
-      setError('No image loaded to apply a filter to.');
+      setError('Filtr qo‘llash uchun rasm yuklanmagan.');
       return;
     }
     
@@ -151,8 +151,8 @@ const App: React.FC = () => {
         const newImageFile = dataURLtoFile(filteredImageUrl, `filtered-${Date.now()}.png`);
         addImageToHistory(newImageFile);
     } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-        setError(`Failed to apply the filter. ${errorMessage}`);
+        const errorMessage = err instanceof Error ? err.message : 'Noma\'lum xatolik yuz berdi.';
+        setError(`Filtrni qo‘llab bo‘lmadi. ${errorMessage}`);
         console.error(err);
     } finally {
         setIsLoading(false);
@@ -161,7 +161,7 @@ const App: React.FC = () => {
   
   const handleApplyAdjustment = useCallback(async (adjustmentPrompt: string) => {
     if (!currentImage) {
-      setError('No image loaded to apply an adjustment to.');
+      setError('O‘zgartirish kiritish uchun rasm yuklanmagan.');
       return;
     }
     
@@ -173,8 +173,8 @@ const App: React.FC = () => {
         const newImageFile = dataURLtoFile(adjustedImageUrl, `adjusted-${Date.now()}.png`);
         addImageToHistory(newImageFile);
     } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-        setError(`Failed to apply the adjustment. ${errorMessage}`);
+        const errorMessage = err instanceof Error ? err.message : 'Noma\'lum xatolik yuz berdi.';
+        setError(`O‘zgartirishni qo‘llab bo‘lmadi. ${errorMessage}`);
         console.error(err);
     } finally {
         setIsLoading(false);
@@ -183,7 +183,7 @@ const App: React.FC = () => {
 
   const handleApplyCrop = useCallback(() => {
     if (!completedCrop || !imgRef.current) {
-        setError('Please select an area to crop.');
+        setError('Iltimos, kesish uchun maydonni tanlang.');
         return;
     }
 
@@ -197,7 +197,7 @@ const App: React.FC = () => {
     const ctx = canvas.getContext('2d');
 
     if (!ctx) {
-        setError('Could not process the crop.');
+        setError('Kesishni amalga oshirib bo‘lmadi.');
         return;
     }
 
@@ -302,13 +302,13 @@ const App: React.FC = () => {
     if (error) {
        return (
            <div className="text-center animate-fade-in bg-red-100 border-2 border-red-800 p-8 rounded-lg max-w-2xl mx-auto flex flex-col items-center gap-4 shadow-[8px_8px_0px_rgba(178,34,34,0.4)]">
-            <h2 className="text-3xl font-display text-red-900">An Error Occurred</h2>
+            <h2 className="text-3xl font-display text-red-900">Xatolik yuz berdi</h2>
             <p className="text-md text-red-800">{error}</p>
             <button
                 onClick={() => setError(null)}
                 className="bg-[#B22222] text-white hover:bg-[#9d1d1d] font-bold py-3 px-6 rounded-lg text-md transition-colors border-2 border-[#3D2B1F] shadow-[4px_4px_0px_#3D2B1F] active:translate-x-1 active:translate-y-1 active:shadow-none"
               >
-                Try Again
+                Qayta urinish
             </button>
           </div>
         );
@@ -349,6 +349,12 @@ const App: React.FC = () => {
       />
     );
 
+    const tabTranslations: Record<Tab, string> = {
+        retouch: 'retush',
+        crop: 'kesish',
+        adjust: 'sozlash',
+        filters: 'filtrlar'
+    };
 
     return (
       <div className="w-full max-w-4xl mx-auto flex flex-col items-center gap-6 animate-fade-in">
@@ -356,7 +362,7 @@ const App: React.FC = () => {
             {isLoading && (
                 <div className="absolute inset-0 bg-[#FDF6E3]/90 z-30 flex flex-col items-center justify-center gap-4 animate-fade-in">
                     <Spinner />
-                    <p className="text-stone-700 text-lg font-medium">AI is working its magic...</p>
+                    <p className="text-stone-700 text-lg font-medium">AI sehrgarlik qilmoqda...</p>
                 </div>
             )}
             
@@ -393,7 +399,7 @@ const App: React.FC = () => {
                         : 'text-stone-800 border-transparent hover:bg-black/10'
                     }`}
                 >
-                    {tab}
+                    {tabTranslations[tab]}
                 </button>
             ))}
         </div>
@@ -402,14 +408,14 @@ const App: React.FC = () => {
             {activeTab === 'retouch' && (
                 <div className="flex flex-col items-center gap-4">
                     <p className="text-md text-stone-600">
-                        {editHotspot ? 'Great! Now describe your localized edit below.' : 'Click an area on the image to make a precise edit.'}
+                        {editHotspot ? 'Ajoyib! Endi quyida mahalliy tahriringizni tasvirlab bering.' : 'Aniq tahrir qilish uchun rasmdagi maydonni bosing.'}
                     </p>
                     <form onSubmit={(e) => { e.preventDefault(); handleGenerate(); }} className="w-full flex items-center gap-2">
                         <input
                             type="text"
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
-                            placeholder={editHotspot ? "e.g., 'change my shirt color to red'" : "First click a point on the image"}
+                            placeholder={editHotspot ? "masalan, 'ko'ylagim rangini qizilga o'zgartir'" : "Avval rasmdagi bir nuqtani bosing"}
                             className="flex-grow bg-white border-2 border-stone-800 text-stone-900 rounded-lg p-4 text-lg focus:ring-2 focus:ring-[#40826D] focus:outline-none transition w-full disabled:cursor-not-allowed disabled:bg-stone-200"
                             disabled={isLoading || !editHotspot}
                         />
@@ -418,7 +424,7 @@ const App: React.FC = () => {
                             className="bg-[#40826D] text-white font-bold py-4 px-8 text-lg rounded-lg transition-all duration-150 ease-in-out border-2 border-[#3D2B1F] shadow-[4px_4px_0px_#3D2B1F] hover:bg-[#356a58] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:bg-stone-400 disabled:shadow-none disabled:text-stone-600 disabled:cursor-not-allowed disabled:transform-none"
                             disabled={isLoading || !prompt.trim() || !editHotspot}
                         >
-                            Generate
+                            Yaratish
                         </button>
                     </form>
                 </div>
@@ -433,19 +439,19 @@ const App: React.FC = () => {
                 onClick={handleUndo}
                 disabled={!canUndo}
                 className="flex items-center justify-center text-center bg-[#F4EAD5] text-stone-800 hover:bg-[#e4d9c5] font-semibold py-3 px-5 rounded-lg transition-all duration-150 border-2 border-[#3D2B1F] shadow-[4px_4px_0px_#3D2B1F] active:translate-x-1 active:translate-y-1 active:shadow-none text-base disabled:!bg-stone-400 disabled:!shadow-none disabled:!text-stone-600 disabled:cursor-not-allowed"
-                aria-label="Undo last action"
+                aria-label="Oxirgi amalni bekor qilish"
             >
                 <UndoIcon className="w-5 h-5 mr-2" />
-                Undo
+                Bekor qilish
             </button>
             <button 
                 onClick={handleRedo}
                 disabled={!canRedo}
                 className="flex items-center justify-center text-center bg-[#F4EAD5] text-stone-800 hover:bg-[#e4d9c5] font-semibold py-3 px-5 rounded-lg transition-all duration-150 border-2 border-[#3D2B1F] shadow-[4px_4px_0px_#3D2B1F] active:translate-x-1 active:translate-y-1 active:shadow-none text-base disabled:!bg-stone-400 disabled:!shadow-none disabled:!text-stone-600 disabled:cursor-not-allowed"
-                aria-label="Redo last action"
+                aria-label="Oxirgi amalni qaytarish"
             >
                 <RedoIcon className="w-5 h-5 mr-2" />
-                Redo
+                Qaytarish
             </button>
             
             <div className="h-6 w-px bg-stone-400 mx-1 hidden sm:block"></div>
@@ -458,10 +464,10 @@ const App: React.FC = () => {
                   onTouchStart={() => setIsComparing(true)}
                   onTouchEnd={() => setIsComparing(false)}
                   className="flex items-center justify-center text-center bg-[#F4EAD5] text-stone-800 hover:bg-[#e4d9c5] font-semibold py-3 px-5 rounded-lg transition-all duration-150 border-2 border-[#3D2B1F] shadow-[4px_4px_0px_#3D2B1F] active:translate-x-1 active:translate-y-1 active:shadow-none text-base"
-                  aria-label="Press and hold to see original image"
+                  aria-label="Asl rasmni ko'rish uchun bosib turing"
               >
                   <EyeIcon className="w-5 h-5 mr-2" />
-                  Compare
+                  Solishtirish
               </button>
             )}
 
@@ -470,20 +476,20 @@ const App: React.FC = () => {
                 disabled={!canUndo}
                 className="text-center bg-transparent text-stone-800 hover:bg-stone-800/10 font-semibold py-3 px-5 rounded-lg transition-all duration-200 border-2 border-[#3D2B1F] active:scale-95 text-base disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Reset
+                Boshiga qaytish
             </button>
             <button 
                 onClick={handleUploadNew}
                 className="text-center bg-[#F4EAD5] text-stone-800 hover:bg-[#e4d9c5] font-semibold py-3 px-5 rounded-lg transition-all duration-150 border-2 border-[#3D2B1F] shadow-[4px_4px_0px_#3D2B1F] active:translate-x-1 active:translate-y-1 active:shadow-none text-base"
             >
-                Upload New
+                Yangi yuklash
             </button>
 
             <button 
                 onClick={handleDownload}
                 className="flex-grow sm:flex-grow-0 ml-auto bg-[#B22222] text-white hover:bg-[#9d1d1d] font-bold py-3 px-5 rounded-lg transition-all duration-150 border-2 border-[#3D2B1F] shadow-[4px_4px_0px_#3D2B1F] active:translate-x-1 active:translate-y-1 active:shadow-none text-base"
             >
-                Download Image
+                Rasmni yuklab olish
             </button>
         </div>
       </div>

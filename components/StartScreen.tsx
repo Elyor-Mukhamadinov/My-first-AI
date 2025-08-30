@@ -30,19 +30,19 @@ const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect }) => {
     >
       <div className="flex flex-col items-center gap-6 animate-fade-in">
         <h1 className="text-5xl font-display tracking-tight text-[#3D2B1F] sm:text-6xl md:text-7xl">
-          AI Photo Editing, <span className="text-[#B22222]">Vintage Style</span>.
+          AI Foto Tahrirlash, <span className="text-[#B22222]">Vintage Uslubida</span>.
         </h1>
         <p className="max-w-2xl text-lg text-stone-700 md:text-xl">
-          Retouch photos, apply creative filters, or make professional adjustments using simple text prompts. All with a classic, retro feel.
+          Oddiy matnli ko‘rsatmalar yordamida suratlarni retush qiling, ijodiy filtrlarni qo‘llang yoki professional sozlashlar kiriting. Barchasi klassik, retro uslubda.
         </p>
 
         <div className="mt-6 flex flex-col items-center gap-4">
             <label htmlFor="image-upload-start" className="relative inline-flex items-center justify-center px-10 py-5 text-xl font-bold text-white bg-[#B22222] rounded-lg cursor-pointer group hover:bg-[#9d1d1d] border-2 border-[#3D2B1F] shadow-[4px_4px_0px_#3D2B1F] transition-all duration-150 active:translate-x-1 active:translate-y-1 active:shadow-none">
                 <UploadIcon className="w-6 h-6 mr-3 transition-transform duration-300 ease-in-out group-hover:scale-110" />
-                Upload an Image
+                Rasm Yuklash
             </label>
             <input id="image-upload-start" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
-            <p className="text-sm text-stone-500">or drag and drop a file</p>
+            <p className="text-sm text-stone-500">yoki faylni sudrab olib keling</p>
         </div>
 
         <div className="mt-16 w-full">
@@ -51,22 +51,22 @@ const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect }) => {
                     <div className="flex items-center justify-center w-16 h-16 bg-[#40826D] rounded-full mb-4 border-2 border-[#3D2B1F]">
                        <MagicWandIcon className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-2xl font-display text-[#3D2B1F]">Precise Retouching</h3>
-                    <p className="mt-2 text-stone-700">Click any point on your image to remove blemishes, change colors, or add elements with pinpoint accuracy.</p>
+                    <h3 className="text-2xl font-display text-[#3D2B1F]">Aniq Retush</h3>
+                    <p className="mt-2 text-stone-700">Nuqsonlarni olib tashlash, ranglarni o‘zgartirish yoki yuqori aniqlik bilan elementlar qo‘shish uchun rasmingizdagi istalgan nuqtani bosing.</p>
                 </div>
                 <div className="bg-[#F4EAD5]/60 p-6 rounded-lg border-2 border-[#3D2B1F] flex flex-col items-center text-center shadow-[8px_8px_0px_rgba(61,43,31,0.2)]">
                     <div className="flex items-center justify-center w-16 h-16 bg-[#40826D] rounded-full mb-4 border-2 border-[#3D2B1F]">
                        <PaletteIcon className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-2xl font-display text-[#3D2B1F]">Creative Filters</h3>
-                    <p className="mt-2 text-stone-700">Transform photos with artistic styles. From vintage looks to dreamy glows, find or create the perfect filter.</p>
+                    <h3 className="text-2xl font-display text-[#3D2B1F]">Ijodiy Filtrlar</h3>
+                    <p className="mt-2 text-stone-700">Suratlarni badiiy uslublar bilan o‘zgartiring. Vintage ko‘rinishlardan xayoliy yorug‘liklargacha, mukammal filtrni toping yoki yarating.</p>
                 </div>
                 <div className="bg-[#F4EAD5]/60 p-6 rounded-lg border-2 border-[#3D2B1F] flex flex-col items-center text-center shadow-[8px_8px_0px_rgba(61,43,31,0.2)]">
                     <div className="flex items-center justify-center w-16 h-16 bg-[#40826D] rounded-full mb-4 border-2 border-[#3D2B1F]">
                        <SunIcon className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-2xl font-display text-[#3D2B1F]">Pro Adjustments</h3>
-                    <p className="mt-2 text-stone-700">Enhance lighting, blur backgrounds, or change the mood. Get studio-quality results without complex tools.</p>
+                    <h3 className="text-2xl font-display text-[#3D2B1F]">Professional Sozlashlar</h3>
+                    <p className="mt-2 text-stone-700">Yoritishni kuchaytiring, orqa fonni xiralashtiring yoki kayfiyatni o‘zgartiring. Murakkab vositalarsiz studiya sifatidagi natijalarga erishing.</p>
                 </div>
             </div>
         </div>
