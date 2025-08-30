@@ -11,7 +11,7 @@ const Header: React.FC = () => {
       <div className="flex items-center justify-center gap-3">
           <CameraIcon className="w-8 h-8 text-[#FDF6E3]" />
           <h1 className="text-3xl font-display tracking-wider text-[#FDF6E3]">
-            Elyor's AI
+            Suratkash
           </h1>
       </div>
     </header>
