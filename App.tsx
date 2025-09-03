@@ -77,9 +77,10 @@ const App: React.FC = () => {
 
   // Effect to manage loading messages
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    // FIX: Replaced NodeJS.Timeout with number, which is the correct return type for setInterval in a browser environment.
+    let interval: number | null = null;
     if (isLoading) {
-      interval = setInterval(() => {
+      interval = window.setInterval(() => {
         setLoadingMessage(prev => {
           const currentIndex = loadingMessages.indexOf(prev);
           const nextIndex = (currentIndex + 1) % loadingMessages.length;
@@ -139,10 +140,10 @@ const App: React.FC = () => {
         return;
     }
 
-    // Validate file size (e.g., 10MB limit)
-    const maxSizeInBytes = 10 * 1024 * 1024;
+    // Validate file size (e.g., 5MB limit for Netlify Functions)
+    const maxSizeInBytes = 5 * 1024 * 1024;
     if (file.size > maxSizeInBytes) {
-        setError("Rasm hajmi 10 MB dan katta bo'lmasligi kerak.");
+        setError("Rasm hajmi 5 MB dan katta bo'lmasligi kerak.");
         return;
     }
 

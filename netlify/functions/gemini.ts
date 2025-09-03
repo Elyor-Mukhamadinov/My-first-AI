@@ -37,7 +37,8 @@ const handleApiResponse = (response: GenerateContentResponse): string => {
 };
 
 // Standard Netlify Function handler for Node.js
-exports.handler = async (event: any) => {
+// FIX: Changed CommonJS 'exports.handler' to ES Module 'export const handler' to resolve "Cannot find name 'exports'" error.
+export const handler = async (event: any) => {
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
     }
@@ -62,11 +63,11 @@ exports.handler = async (event: any) => {
         
         // Check image size from base64 data length (approximate)
         const imageSizeInBytes = data.length * 0.75;
-        const maxSizeInBytes = 10 * 1024 * 1024;
+        const maxSizeInBytes = 5 * 1024 * 1024; // 5MB limit for Netlify functions
         if (imageSizeInBytes > maxSizeInBytes) {
              return {
                 statusCode: 413, // Payload Too Large
-                body: JSON.stringify({ error: "Rasm hajmi 10 MB dan katta bo'lmasligi kerak." })
+                body: JSON.stringify({ error: "Rasm hajmi 5 MB dan katta bo'lmasligi kerak." })
             };
         }
         
